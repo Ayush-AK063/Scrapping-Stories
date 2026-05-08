@@ -13,6 +13,7 @@ export default function Home() {
   const [scraping, setScraping] = useState(false);
   const [error, setError] = useState("");
   const [toastMessage, setToastMessage] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
 
@@ -67,11 +68,23 @@ export default function Home() {
     return () => window.clearTimeout(timer);
   }, [fetchStories]);
 
+  const filteredStories = stories.filter((story) =>
+    story.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    story.author.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Top Hacker News Stories</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <input
+            type="text"
+            placeholder="Search stories..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="rounded border border-gray-300 px-3 py-1.5 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+          />
           {user && (
             <button
               onClick={handleScrape}
@@ -98,14 +111,14 @@ export default function Home() {
       {!loading && !error && (
         <>
           <StoryList
-            stories={stories}
+            stories={filteredStories}
             user={user}
             token={token}
             onToggleBookmark={handleToggleBookmark}
-            emptyMessage="No stories found."
+            emptyMessage={searchQuery ? `No stories matching "${searchQuery}"` : "No stories found."}
           />
           
-          {totalPages > 1 && (
+          {totalPages > 1 && !searchQuery && (
             <div className="mt-6 flex items-center justify-center gap-4">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
